@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptShield</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      width: 360px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+      font-size: 13px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .logo-badge {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #475569;
+      transition: .2s;
+      border-radius: 22px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+    .section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mode-selector {
+      display: flex;
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+      margin-bottom: 4px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 6px 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-label input {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    textarea.dictionary-input {
+      width: 100%;
+      height: 52px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 8px;
+      font-size: 12px;
+      resize: none;
+    }
+    textarea.dictionary-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .vault-list {
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .vault-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: monospace;
+    }
+    .vault-token {
+      color: #818cf8;
+      font-weight: 700;
+    }
+    .vault-value {
+      color: var(--text-muted);
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .empty-vault {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 12px 0;
+      font-size: 12px;
+      font-style: italic;
+    }
+    .btn-clear {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-clear:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .rehydrate-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    footer {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+    .popup-footer {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(128, 128, 128, 0.2);
+      text-align: center;
+    }
+    .report-link {
+      font-size: 11px;
+      color: #6b7280;
+      text-decoration: none;
+    }
+    .report-link:hover {
+      color: #111827;
+      text-decoration: underline;
+    }
+  </style>
+  <link rel="stylesheet" href="./popup.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span>🛡️</span>
+      <span>PromptShield</span>
+      <span class="logo-badge">V3</span>
+    </div>
+    <label class="toggle-switch">
+      <input type="checkbox" id="master-toggle" checked>
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <div class="section">
+    <div class="section-title">Interception Mode</div>
+    <div class="mode-selector">
+      <button class="mode-btn active" id="mode-auto">Auto-Sanitize</button>
+      <button class="mode-btn" id="mode-review">Review First</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Detection Rules</div>
+    <div class="rules-grid">
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-EMAIL" checked> Emails
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-SECRET" checked> API Keys & Secrets
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-CREDIT_CARD" checked> Credit Cards (Luhn)
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-SSN" checked> US SSN
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-PHONE" checked> Phone Numbers
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-IP" checked> IP Addresses
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-CONNECTION_URI" checked> Connection URIs
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="rule-PASSWORD" checked> Passwords & Tokens
+      </label>
+      <label class="checkbox-label" style="grid-column: span 2;">
+        <input type="checkbox" id="rule-CUSTOM" checked> Custom Blacklist Dictionary
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Custom Redaction Dictionary</div>
+    <textarea class="dictionary-input" id="custom-words" placeholder="ClientName, ProjectOrion, AcmeCorp (comma separated)"></textarea>
+  </div>
+
+  <div class="section">
+    <div class="rehydrate-toggle">
+      <span>Rehydrate tokens in AI replies</span>
+      <input type="checkbox" id="rehydrate-toggle" checked>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span>Session Vault Inspector</span>
+      <span id="vault-count" style="color: var(--primary);">0 items</span>
+    </div>
+    <div class="vault-list" id="vault-list">
+      <div class="empty-vault">No active tokens in this session</div>
+    </div>
+    <button class="btn-clear" id="btn-clear-vault">Clear Session Vault</button>
+  </div>
+
+  <footer class="popup-footer">
+    <a
+      href="https://github.com/TiaRand24/promptshield/issues/new?title=%5BBroken+Selector%5D+&body=**Site%3A**+%28ChatGPT+%2F+Claude+%2F+Gemini%29%0A**What+happened%3A**+%28e.g.%2C+prompt+was+not+tokenized+or+response+did+not+rehydrate%29"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="report-link"
+    >
+      Report broken selector
+    </a>
+  </footer>
+
+  <script type="module" src="./popup.ts"></script>
+</body>
+</html>

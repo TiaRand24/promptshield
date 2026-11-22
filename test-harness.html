@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PromptShield E2E Test Harness</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    h1 {
+      font-size: 22px;
+      color: #818cf8;
+      margin-bottom: 24px;
+    }
+    .panel {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .panel h2 {
+      font-size: 15px;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+    }
+    textarea#prompt-textarea {
+      width: 100%;
+      height: 80px;
+      background: #09090b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+      resize: none;
+    }
+    div.ProseMirror {
+      min-height: 80px;
+      background: #09090b;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .btn {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn:hover {
+      background: #4338ca;
+    }
+    #submitted-log {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      min-height: 80px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-entry {
+      padding: 6px;
+      border-bottom: 1px solid #1e293b;
+      color: #38bdf8;
+    }
+    #chat-transcript {
+      background: #09090b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 12px;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ PromptShield Test Harness: React & ProseMirror Simulation</h1>
+
+  <!-- Simulated React Controlled Textarea (ChatGPT Style) -->
+  <div class="panel">
+    <h2>1. Simulated React Controlled Input (#prompt-textarea)</h2>
+    <form id="react-form" onsubmit="return false;">
+      <textarea id="prompt-textarea" placeholder="Type prompt here..."></textarea>
+      <button type="submit" id="send-button" class="btn">Send via React</button>
+    </form>
+    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+      React Internal State: <code id="react-state-display" style="color: #a5b4fc;">""</code>
+    </div>
+  </div>
+
+  <!-- Simulated ProseMirror ContentEditable (Claude Style) -->
+  <div class="panel">
+    <h2>2. Simulated ProseMirror Input (Claude / Gemini Style)</h2>
+    <div contenteditable="true" class="ProseMirror" id="prosemirror-editor">
+      <p>Type rich text prompt here...</p>
+    </div>
+    <button type="button" id="prosemirror-send-button" class="btn">Send via ProseMirror</button>
+    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">
+      ProseMirror Internal State: <code id="pm-state-display" style="color: #a5b4fc;">""</code>
+    </div>
+  </div>
+
+  <!-- Output Log -->
+  <div class="panel">
+    <h2>Submitted Payload Log (Received by Backend/AI)</h2>
+    <div id="submitted-log"></div>
+  </div>
+
+  <!-- Chat Transcript Container for Rehydration -->
+  <div class="panel">
+    <h2>Chat Transcript (Simulated AI Streaming Replies)</h2>
+    <div id="chat-transcript">
+      <div class="ai-reply">No response yet.</div>
+    </div>
+  </div>
+
+  <script>
+    // --- React 16+ Controlled Component Simulation ---
+    const reactTextarea = document.getElementById('prompt-textarea');
+    const reactStateDisplay = document.getElementById('react-state-display');
+    const submittedLog = document.getElementById('submitted-log');
+    let reactInternalState = '';
+
+    // Synchronize React state strictly on input events
+    reactTextarea.addEventListener('input', (e) => {
+      reactInternalState = reactTextarea.value;
+      reactStateDisplay.textContent = JSON.stringify(reactInternalState);
+    });
+
+    document.getElementById('react-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      logSubmission('React-Controlled Textarea', reactInternalState);
+    });
+
+    // --- ProseMirror State Simulation ---
+    const pmEditor = document.getElementById('prosemirror-editor');
+    const pmStateDisplay = document.getElementById('pm-state-display');
+    let pmInternalState = pmEditor.textContent.trim();
+
+    pmEditor.addEventListener('input', () => {
+      pmInternalState = pmEditor.textContent.trim();
+      pmStateDisplay.textContent = JSON.stringify(pmInternalState);
+    });
+
+    document.getElementById('prosemirror-send-button').addEventListener('click', () => {
+      logSubmission('ProseMirror ContentEditable', pmInternalState);
+    });
+
+    function logSubmission(source, payload) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<strong>[${source}]</strong>: ${payload}`;
+      submittedLog.appendChild(entry);
+      window.__lastSubmittedPayload = payload;
+      window.__submissionCount = (window.__submissionCount || 0) + 1;
+    }
+  </script>
+</body>
+</html>
